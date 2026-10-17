@@ -10,10 +10,11 @@
     this.customizeDraft=null;this.customizeOriginal=null;this.customizeBest=this.best;this.customizeStart=false;this.customizeFresh=false;
     this.score=0;this.distance=0;this.bones=0;
     this.speed=320;this.popup=0;this.gameOverTime=0;this.newBest=false;this.debug=false;this.shake=0;
+    this.cameraOffset={x:0,y:0};this.frozenTime=0;
   }
   Game.prototype.start=function(){
     this.player.reset();this.obstacles.length=0;this.collectibles.length=0;this.spawner=new DZ.Spawner(20261017);
-    this.score=0;this.distance=0;this.bones=0;this.popup=0;this.newBest=false;this.state="playing";DZ.audio.sfx("bark");
+    this.score=0;this.distance=0;this.bones=0;this.popup=0;this.newBest=false;this.shake=0;this.frozenTime=0;this.state="playing";DZ.audio.sfx("bark");
   };
   Game.prototype.openCustomize=function(startAfter){
     this.customizeOriginal={name:this.profile.name,color:this.profile.color,customized:this.profile.customized};
@@ -46,7 +47,7 @@
       this.profile=this.customizeOriginal;DZ.art.setCoat(this.profile.color);DZ.input.setTextMode(false);this.state="title";
     }
   };
-  Game.prototype.pause=function(){if(this.state==="playing")this.state="paused";};
+  Game.prototype.pause=function(){if(this.state==="playing"){this.shake=0;this.frozenTime=this.time;this.state="paused";}};
   Game.prototype.botInput=function(){
     if(!DZ.bot)return;var nearest=null;
     for(var i=0;i<this.obstacles.length;i++){var o=this.obstacles[i];if(o.age>=0&&o.x+o.w>this.player.x-40&&(!nearest||o.x<nearest.x))nearest=o;}
@@ -58,6 +59,7 @@
         nearest.botAnswer=futureY<C.groundY-80?"duck":"jump";
       }
       if(nearest.answer==="duck"||nearest.botAnswer==="duck")DZ.input.held.ArrowDown=true;
+      else if(nearest.requiresDouble&&!this.player.onGround&&this.player.airJumps>0&&(nearest.clusterIndex>0||nearest.x-this.player.x<50))DZ.input.pressed.Space=true;
       else if(this.player.onGround&&nearest.x>this.player.x+20)DZ.input.pressed.Space=true;
     }
     if(!this.player.onGround)DZ.input.held.Space=this.player.y>C.groundY-135;
@@ -87,12 +89,13 @@
       else if(DZ.input.hit("Escape"))this.state="title";
       return;
     }
-    if(DZ.input.hit("KeyP")||DZ.input.hit("Escape")){this.state="paused";return;}
+    if(DZ.input.hit("KeyP")||DZ.input.hit("Escape")){this.pause();return;}
     this.botInput();
     this.speed=DZ.difficulty.worldSpeed(this.distance,this.player.x,this.player.zoomies>0);
     var headroom=false,pbox=this.player.hitbox();
     for(var h=0;h<this.obstacles.length;h++)if(this.obstacles[h].answer==="duck"&&U.aabb({x:pbox.x,y:pbox.y-28,w:pbox.w,h:28},this.obstacles[h].hitbox()))headroom=true;
     this.player.update(dt,DZ.input,headroom);
+    if(this.player.doubleJumpPulse)this.particles.burst(this.player.x,this.player.y-28,DZ.palette.white,10);
     this.distance+=this.speed*dt*C.metersPerPixel;
     var band=(this.player.x-C.player.minX)/(C.player.maxX-C.player.minX),mult=1+band*.5;
     this.score+=this.speed*dt*C.metersPerPixel*mult*(this.player.zoomies>0?2:1);
@@ -121,20 +124,22 @@
     this.particles.burst(c.x,c.y,DZ.palette.yellow,8);
   };
   Game.prototype.finish=function(){
-    this.state="gameover";this.gameOverTime=0;this.newBest=this.score>this.best.score||this.distance>this.best.distance;
+    this.shake=0;this.frozenTime=this.time;this.state="gameover";this.gameOverTime=0;this.newBest=this.score>this.best.score||this.distance>this.best.distance;
     if(this.newBest){this.best=DZ.bests.update(this.bests,this.profile.name,this.score,this.distance);this.leaderboard=DZ.bests.top(this.bests,5);DZ.audio.sfx("bark");}
     else DZ.audio.sfx("gameover");
   };
   Game.prototype.render=function(ctx,fps){
-    ctx.save();if(this.shake>0)ctx.translate((Math.random()-.5)*12,(Math.random()-.5)*12);
-    this.background.draw(ctx,this.distance,this.time);
-    for(var i=0;i<this.obstacles.length;i++){var o=this.obstacles[i];if(o.age>=0)DZ.art.drawObstacle(ctx,o,this.time);}
-    for(var j=0;j<this.collectibles.length;j++)DZ.art.drawCollectible(ctx,this.collectibles[j],this.time);
+    var visualTime=this.state==="playing"?this.time:((this.state==="paused"||this.state==="gameover")?this.frozenTime:0);
+    U.screenOffset(this.state,this.shake,C.reduceMotion,Math.random,this.cameraOffset);
+    ctx.save();if(this.cameraOffset.x||this.cameraOffset.y)ctx.translate(this.cameraOffset.x,this.cameraOffset.y);
+    this.background.draw(ctx,this.distance,visualTime);
+    for(var i=0;i<this.obstacles.length;i++){var o=this.obstacles[i];if(o.age>=0)DZ.art.drawObstacle(ctx,o,visualTime);}
+    for(var j=0;j<this.collectibles.length;j++)DZ.art.drawCollectible(ctx,this.collectibles[j],visualTime);
     this.particles.draw(ctx);
-    if(this.state!=="title"&&this.state!=="how"&&this.state!=="customize")DZ.art.drawDoodle(ctx,this.player,this.time,false);
+    if(this.state!=="title"&&this.state!=="how"&&this.state!=="customize")DZ.art.drawDoodle(ctx,this.player,visualTime,false,this.state!=="playing");
     if(this.state!=="title"&&this.state!=="how"&&this.state!=="customize")DZ.hud.draw(ctx,this);
-    if(this.state==="title")DZ.screens.title(ctx,this,this.time);else if(this.state==="how")DZ.screens.how(ctx);
-    else if(this.state==="customize")DZ.screens.customize(ctx,this,this.time);
+    if(this.state==="title")DZ.screens.title(ctx,this,0);else if(this.state==="how")DZ.screens.how(ctx);
+    else if(this.state==="customize")DZ.screens.customize(ctx,this,0);
     else if(this.state==="paused")DZ.screens.pause(ctx);else if(this.state==="gameover")DZ.screens.gameover(ctx,this);
     if(this.debug)this.drawDebug(ctx,fps);ctx.restore();
   };

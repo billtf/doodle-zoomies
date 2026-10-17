@@ -7,11 +7,14 @@
     frisbee:{answer:"duck",w:40,h:14,unlock:250,moving:80}, bins:{answer:"jump",w:90,h:56,unlock:400},
     skateboard:{answer:"jump",w:60,h:20,unlock:500,moving:70}, clothesline:{answer:"duck",w:160,h:170,unlock:600},
     soccer:{answer:"time",w:34,h:34,unlock:800}, sprinkler:{answer:"jump",w:40,h:70,unlock:1000},
-    crow:{answer:"duck",w:46,h:30,unlock:1300,moving:50}, bike:{answer:"jump",w:70,h:80,unlock:1600,moving:90}
+    crow:{answer:"duck",w:46,h:30,unlock:1300,moving:50}, bike:{answer:"jump",w:70,h:80,unlock:1600,moving:90},
+    mailbox:{answer:"jump",w:50,h:72,unlock:0}, kiddiepool:{answer:"jump",w:110,h:24,unlock:250},
+    flowerpots:{answer:"jump",w:76,h:40,unlock:400}, gardenhose:{answer:"jump",w:92,h:18,unlock:500}
   };
   function Obstacle(type,x,delay){
     var d=DZ.obstacleTypes[type];this.type=type;this.answer=d.answer;this.w=d.w;this.h=d.h;this.x=x;this.baseX=x;
     this.y=(d.answer==="duck"?(G-30-d.h):G-d.h);this.baseY=this.y;this.moving=d.moving||0;this.age=-(delay||0);this.active=true;this.passed=false;this.activeSpray=true;
+    this.clusterId=0;this.clusterIndex=0;this.clusterCount=0;this.requiresDouble=false;
   }
   Obstacle.prototype.update=function(dt,speed){
     this.age+=dt;if(this.age<0)return;

@@ -53,14 +53,19 @@
     DZ.art.coatCacheBuilds++;
     return coat.id;
   };
-  DZ.art.drawDoodle = function (ctx, player, time, title) {
+  DZ.art.drawDoodle = function (ctx, player, time, title, still) {
     var state = title ? "idle" : player.state;
     if (state === "knockedOut") state = "hurt";
     if (!cache[state + "0"]) state = "run";
-    var phase = (time * (title ? 5 : 10)) % 6 | 0;
+    var phase = (title || still) ? 0 : (time * 10) % 6 | 0;
+    var px = (title || still) ? Math.round(player.x) : player.x;
+    var py = (title || still) ? Math.round(player.y) : player.y;
     ctx.save();
     if (player.facingBlink) ctx.globalAlpha = .35;
-    ctx.drawImage(cache[state + phase], player.x - 60, player.y - 94);
+    if (player.spinAngle && !still) {
+      ctx.translate(px, py - 45);ctx.rotate(player.spinAngle);
+      ctx.drawImage(cache[state + phase], -60, -49);
+    } else ctx.drawImage(cache[state + phase], px - 60, py - 94);
     ctx.restore();
   };
   DZ.art.setCoat("apricot");
