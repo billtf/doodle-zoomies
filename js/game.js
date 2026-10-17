@@ -124,7 +124,8 @@
     this.background.draw(ctx,this.distance,this.time);
     for(var i=0;i<this.obstacles.length;i++){var o=this.obstacles[i];if(o.age>=0)DZ.art.drawObstacle(ctx,o,this.time);}
     for(var j=0;j<this.collectibles.length;j++)DZ.art.drawCollectible(ctx,this.collectibles[j],this.time);
-    this.particles.draw(ctx);DZ.art.drawDoodle(ctx,this.player,this.time,false);
+    this.particles.draw(ctx);
+    if(this.state!=="title"&&this.state!=="how"&&this.state!=="customize")DZ.art.drawDoodle(ctx,this.player,this.time,false);
     if(this.state!=="title"&&this.state!=="how"&&this.state!=="customize")DZ.hud.draw(ctx,this);
     if(this.state==="title")DZ.screens.title(ctx,this,this.time);else if(this.state==="how")DZ.screens.how(ctx);
     else if(this.state==="customize")DZ.screens.customize(ctx,this,this.time);
