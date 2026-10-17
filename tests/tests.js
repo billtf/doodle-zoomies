@@ -48,6 +48,8 @@
   test("non-playing screens always have zero camera offset",function(){
     var states=["title","customize","paused","gameover","how"],out={x:99,y:99};
     for(var i=0;i<states.length;i++){DZ.util.screenOffset(states[i],1,false,function(){return 1;},out);ok(out.x===0&&out.y===0,states[i]+" moved");}
+    var g=new DZ.Game();g.state="playing";g.shake=.15;g.pause();ok(g.state==="paused"&&g.shake===0);
+    g.state="playing";g.shake=.15;g.finish();ok(g.state==="gameover"&&g.shake===0);
   });
   test("bot clears a required double-jump cluster",function(){
     var oldInput=DZ.input,oldBot=DZ.bot,held={},pressed={};
