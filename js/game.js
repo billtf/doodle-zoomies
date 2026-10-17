@@ -59,7 +59,7 @@
         nearest.botAnswer=futureY<C.groundY-80?"duck":"jump";
       }
       if(nearest.answer==="duck"||nearest.botAnswer==="duck")DZ.input.held.ArrowDown=true;
-      else if(nearest.requiresDouble&&!this.player.onGround&&this.player.airJumps>0&&(nearest.clusterIndex>0||nearest.x-this.player.x<50))DZ.input.pressed.Space=true;
+      else if(nearest.requiresDouble&&!this.player.onGround&&this.player.airJumps>0&&nearest.clusterIndex>0)DZ.input.pressed.Space=true;
       else if(this.player.onGround&&nearest.x>this.player.x+20)DZ.input.pressed.Space=true;
     }
     if(!this.player.onGround)DZ.input.held.Space=this.player.y>C.groundY-135;
