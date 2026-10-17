@@ -20,7 +20,9 @@ Open `index.html` in Chrome and press Space.
 
 The first time you start, type a dog name of up to 12 characters and use the arrow keys to choose from eight coat colors. Press Enter to save and play. Press C on the title screen to customize again. While naming the dog, typing is isolated from gameplay controls.
 
-The game saves the name, coat, best score, best distance, and mute setting when browser storage is available. All storage access uses a safe fallback, so it still plays when storage is blocked or cleared.
+The game saves the name, coat, per-player best score and distance, and mute setting when browser storage is available. Names are matched case-insensitively, so `Milo` and `milo` share one record. The title screen shows the current player's best and a local top-five leaderboard for this browser. The HUD's **BEST** value updates live when a run passes the saved score, and game over marks a new personal record.
+
+Older installs are migrated once from `dz.v1.best` into the current player's entry in `dz.v1.bests`. All storage access uses a safe fallback, so the game still plays when storage is blocked or cleared.
 
 ## Host on GitHub Pages
 
@@ -38,7 +40,7 @@ If GitHub Pages is blocked, click **Code → Download ZIP** on GitHub. Unzip the
 
 ## Tests
 
-Open `tests/tests.html` in Chrome. The dependency-free browser suite checks collisions, jump physics, speed, profile sanitization and persistence, cached coat rendering, storage fallback, all obstacle definitions, 40,000 fairness selections, and a 20,000-tick simulation. Add `?bot=1` to the game URL for the automated play mode.
+Open `tests/tests.html` in Chrome. The dependency-free browser suite checks collisions, jump physics, speed, profile sanitization and persistence, per-player best migration and ranking, cached coat rendering, storage fallback, all obstacle definitions, 40,000 fairness selections, and a 20,000-tick simulation. Add `?bot=1` to the game URL for the automated play mode.
 
 ## Tweak the game
 

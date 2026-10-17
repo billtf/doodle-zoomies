@@ -5,11 +5,17 @@
     title:function(ctx,g,time){
       ctx.fillStyle="rgba(75,53,50,.2)";ctx.fillRect(0,0,960,540);
       T(ctx,"DOODLE",480,132,70);T(ctx,"ZOOMIES",480,197,62);
-      DZ.art.drawDoodle(ctx,{x:480,y:355,state:"run",onGround:true,facingBlink:false},time,true);
-      T(ctx,"Press Space to start",480,430,25);
-      T(ctx,g.profile.name+" is ready!",480,463,17);
-      T(ctx,"C: Customize    H: How to play    M: Sound "+(DZ.audio.muted?"off":"on"),480,492,15);
-      T(ctx,"Best: "+Math.floor(g.best.score)+"  •  "+Math.floor(g.best.distance)+" m",480,520,16);
+      DZ.art.drawDoodle(ctx,{x:410,y:355,state:"run",onGround:true,facingBlink:false},time,true);
+      DZ.util.roundRect(ctx,690,220,245,176,12);ctx.fillStyle="rgba(52,42,47,.58)";ctx.fill();
+      T(ctx,"LOCAL TOP 5",812,246,17);
+      if(!g.leaderboard.length)T(ctx,"No runs yet",812,288,15);
+      for(var i=0;i<g.leaderboard.length;i++){
+        T(ctx,(i+1)+". "+g.leaderboard[i].name,708,276+i*23,14,"left");
+        T(ctx,Math.floor(g.leaderboard[i].score),917,276+i*23,14,"right");
+      }
+      T(ctx,"Press Space to start",430,430,25);
+      T(ctx,g.profile.name+"'s best: "+Math.floor(g.best.score)+"  •  "+Math.floor(g.best.distance)+" m",430,463,17);
+      T(ctx,"C: Customize    H: How to play    M: Sound "+(DZ.audio.muted?"off":"on"),480,500,15);
     },
     customize:function(ctx,g,time){
       var draft=g.customizeDraft,presets=DZ.art.coatPresets,index=DZ.art.coatIndex(draft.color);
@@ -22,8 +28,9 @@
       ctx.fillText((draft.name||"")+(Math.floor(time*2)%2?"|":""),480,170);
       DZ.art.drawDoodle(ctx,{x:480,y:342,state:"run",onGround:true,facingBlink:false},time,true);
       T(ctx,"◀  "+presets[index].label+"  ▶",480,398,25);
-      T(ctx,"Arrow keys choose a coat • Backspace edits • 12 characters max",480,447,16);
-      T(ctx,"Enter: Save"+(g.customizeStart?" and start":"" )+"    Esc: Cancel",480,490,19);
+      T(ctx,DZ.profile.sanitizeName(draft.name)+"'s best: "+Math.floor(g.customizeBest.score)+"  •  "+Math.floor(g.customizeBest.distance)+" m",480,429,15);
+      T(ctx,"Arrow keys choose a coat • Backspace edits • 12 characters max",480,459,16);
+      T(ctx,"Enter: Save"+(g.customizeStart?" and start":"" )+"    Esc: Cancel",480,500,19);
     },
     how:function(ctx){
       ctx.fillStyle="rgba(48,55,63,.88)";ctx.fillRect(0,0,960,540);T(ctx,"HOW TO PLAY",480,92,43);

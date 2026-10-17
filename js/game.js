@@ -5,8 +5,10 @@
     this.state="title";this.time=0;this.player=new DZ.Player();this.spawner=new DZ.Spawner(20261017);
     this.background=new DZ.Background();this.particles=new DZ.Particles();this.obstacles=[];this.collectibles=[];
     this.profile=DZ.profile.load();this.profile.color=DZ.art.setCoat(this.profile.color);
-    this.customizeDraft=null;this.customizeOriginal=null;this.customizeStart=false;this.customizeFresh=false;
-    this.best=DZ.storage.get("dz.v1.best",{score:0,distance:0});this.score=0;this.distance=0;this.bones=0;
+    this.bests=DZ.bests.loadAll(this.profile.name,this.profile.customized);
+    this.best=DZ.bests.get(this.bests,this.profile.name);this.leaderboard=DZ.bests.top(this.bests,5);
+    this.customizeDraft=null;this.customizeOriginal=null;this.customizeBest=this.best;this.customizeStart=false;this.customizeFresh=false;
+    this.score=0;this.distance=0;this.bones=0;
     this.speed=320;this.popup=0;this.gameOverTime=0;this.newBest=false;this.debug=false;this.shake=0;
   }
   Game.prototype.start=function(){
@@ -16,15 +18,17 @@
   Game.prototype.openCustomize=function(startAfter){
     this.customizeOriginal={name:this.profile.name,color:this.profile.color,customized:this.profile.customized};
     this.customizeDraft={name:this.profile.name,color:this.profile.color};
+    this.customizeBest=DZ.bests.get(this.bests,this.customizeDraft.name);
     this.customizeStart=!!startAfter;this.customizeFresh=true;this.state="customize";
     DZ.input.setTextMode(true);DZ.art.setCoat(this.customizeDraft.color);
   };
   Game.prototype.updateCustomize=function(){
     var input=DZ.input,draft=this.customizeDraft,presets=DZ.art.coatPresets;
-    if(input.backspace){draft.name=draft.name.slice(0,-1);this.customizeFresh=false;}
+    if(input.backspace){draft.name=draft.name.slice(0,-1);this.customizeFresh=false;this.customizeBest=DZ.bests.get(this.bests,draft.name);}
     if(input.text){
       var typed=input.text.replace(/[^a-zA-Z0-9 '\-]/g,"");
       draft.name=(this.customizeFresh?typed:draft.name+typed).slice(0,12);this.customizeFresh=false;
+      this.customizeBest=DZ.bests.get(this.bests,draft.name);
     }
     var direction=(input.hit("ArrowRight")||input.hit("ArrowDown"))?1:
       ((input.hit("ArrowLeft")||input.hit("ArrowUp"))?-1:0);
@@ -34,7 +38,9 @@
     }
     if(input.hit("Enter")){
       this.profile={name:DZ.profile.sanitizeName(draft.name),color:draft.color,customized:true};
-      DZ.profile.save(this.profile);DZ.input.setTextMode(false);
+      DZ.profile.save(this.profile);DZ.bests.migrateLegacy(this.bests,this.profile.name);
+      this.best=DZ.bests.get(this.bests,this.profile.name);this.leaderboard=DZ.bests.top(this.bests,5);
+      DZ.input.setTextMode(false);
       if(this.customizeStart)this.start();else this.state="title";
     }else if(input.hit("Escape")){
       this.profile=this.customizeOriginal;DZ.art.setCoat(this.profile.color);DZ.input.setTextMode(false);this.state="title";
@@ -116,7 +122,7 @@
   };
   Game.prototype.finish=function(){
     this.state="gameover";this.gameOverTime=0;this.newBest=this.score>this.best.score||this.distance>this.best.distance;
-    if(this.newBest){this.best={score:Math.max(this.best.score,this.score),distance:Math.max(this.best.distance,this.distance)};DZ.storage.set("dz.v1.best",this.best);DZ.audio.sfx("bark");}
+    if(this.newBest){this.best=DZ.bests.update(this.bests,this.profile.name,this.score,this.distance);this.leaderboard=DZ.bests.top(this.bests,5);DZ.audio.sfx("bark");}
     else DZ.audio.sfx("gameover");
   };
   Game.prototype.render=function(ctx,fps){

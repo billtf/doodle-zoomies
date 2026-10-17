@@ -44,6 +44,19 @@
     DZ.profile.save({name:"Pepper<script>",color:"pink",customized:false});var p=DZ.profile.load();
     ok(p.name==="Pepperscript");ok(p.color==="pink");ok(p.customized===true);DZ.profile.key=key;
   });
+  test("per-player bests migrate, merge case-insensitively, and rank top five",function(){
+    var key=DZ.bests.key,legacy=DZ.bests.legacyKey;
+    DZ.bests.key="dz.v1.bests.test";DZ.bests.legacyKey="dz.v1.best.test";
+    DZ.storage.remove(DZ.bests.key);DZ.storage.remove(DZ.bests.legacyKey);
+    DZ.storage.set(DZ.bests.legacyKey,{score:120,distance:40});
+    var all=DZ.bests.loadAll("Milo",true),milo=DZ.bests.get(all,"mILO");
+    ok(milo.score===120&&milo.distance===40);ok(DZ.storage.get(DZ.bests.legacyKey,null)===null);
+    DZ.bests.update(all,"MILO",150,35);ok(DZ.bests.get(all,"milo").score===150);ok(DZ.bests.get(all,"milo").distance===40);
+    DZ.bests.update(all,"Poppy",500,20);DZ.bests.update(all,"Scout",400,20);DZ.bests.update(all,"Blue",300,20);
+    DZ.bests.update(all,"Goldie",200,20);DZ.bests.update(all,"Pepper",100,20);
+    var top=DZ.bests.top(all,5);ok(top.length===5);ok(top[0].name==="Poppy");ok(top[4].name==="MILO");
+    DZ.storage.remove(DZ.bests.key);DZ.storage.remove(DZ.bests.legacyKey);DZ.bests.key=key;DZ.bests.legacyKey=legacy;
+  });
   test("20,000 tick entity simulation remains finite and bounded",function(){
     var game={distance:0,speed:320,obstacles:[],collectibles:[],player:{hearts:2}},s=new DZ.Spawner(55);
     for(var i=0;i<20000;i++){game.distance+=game.speed/60/50;game.speed=DZ.difficulty.baseSpeed(game.distance);s.update(1/60,game);
