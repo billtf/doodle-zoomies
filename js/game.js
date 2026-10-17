@@ -14,9 +14,17 @@
   Game.prototype.pause=function(){if(this.state==="playing")this.state="paused";};
   Game.prototype.botInput=function(){
     if(!DZ.bot)return;var nearest=null;
-    for(var i=0;i<this.obstacles.length;i++){var o=this.obstacles[i];if(o.age>=0&&o.x>this.player.x&&(!nearest||o.x<nearest.x))nearest=o;}
+    for(var i=0;i<this.obstacles.length;i++){var o=this.obstacles[i];if(o.age>=0&&o.x+o.w>this.player.x-40&&(!nearest||o.x<nearest.x))nearest=o;}
     DZ.input.held.ArrowRight=true;DZ.input.held.ArrowDown=false;
-    if(nearest&&nearest.x-this.player.x<145){if(nearest.answer==="duck")DZ.input.held.ArrowDown=true;else if(this.player.onGround)DZ.input.pressed.Space=true;}
+    if(nearest&&nearest.x-this.player.x<175){
+      if(nearest.type==="soccer"&&!nearest.botAnswer){
+        var arrival=Math.max(0,(nearest.x-this.player.x)/(this.speed+nearest.moving));
+        var futureY=nearest.baseY-Math.abs(Math.sin((nearest.age+arrival)*3.2))*105;
+        nearest.botAnswer=futureY<C.groundY-80?"duck":"jump";
+      }
+      if(nearest.answer==="duck"||nearest.botAnswer==="duck")DZ.input.held.ArrowDown=true;
+      else if(this.player.onGround&&nearest.x>this.player.x+20)DZ.input.pressed.Space=true;
+    }
     if(!this.player.onGround)DZ.input.held.Space=this.player.y>C.groundY-135;
   };
   Game.prototype.update=function(dt){

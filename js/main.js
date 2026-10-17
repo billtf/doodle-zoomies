@@ -4,6 +4,7 @@
   canvas.width=DZ.config.width;canvas.height=DZ.config.height;canvas.focus();
   DZ.input.init(canvas);DZ.audio.init();DZ.bot=/[?&]bot=1(?:&|$)/.test(location.search);
   var game=DZ.game=new DZ.Game(),last=performance.now(),acc=0,fps=60,frames=0,fpsTime=last;
+  if(DZ.bot)game.start();
   function frame(now){
     var delta=Math.min(DZ.config.maxDelta,(now-last)/1000);last=now;acc+=delta;
     while(acc>=DZ.config.step){game.update(DZ.config.step);DZ.input.endFrame();acc-=DZ.config.step;}

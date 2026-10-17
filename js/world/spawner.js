@@ -20,13 +20,13 @@
     this.lastGap=gap;var x=DZ.config.width+50;
     for(var i=0;i<pattern.length;i++){
       var name=pattern[i],def=DZ.obstacleTypes[name];
-      if(def&&def.unlock<=game.distance){game.obstacles.push(new DZ.Obstacle(name,x+i*gap/game.speed*.35));}
-      else if(!def){game.collectibles.push(new DZ.Collectible(name,x+i*70,DZ.config.groundY-95));}
+      if(def&&def.unlock<=game.distance){game.obstacles.push(new DZ.Obstacle(name,x+i*gap));}
+      else if(!def&&!(name==="heart"&&game.player.hearts>=3)){game.collectibles.push(new DZ.Collectible(name,x+i*gap,DZ.config.groundY-95));}
     }
     if(game.distance>=this.nextShield){game.collectibles.push(new DZ.Collectible("shield",x+90,DZ.config.groundY-110));this.nextShield+=DZ.config.powerups.shieldGap;}
     if(game.distance>=this.nextZoomies){game.collectibles.push(new DZ.Collectible("zoomies",x+130,DZ.config.groundY-120));this.nextZoomies+=DZ.config.powerups.zoomiesGap;}
     if(game.player.hearts<3&&game.distance>=this.nextHeart){game.collectibles.push(new DZ.Collectible("heart",x+100,DZ.config.groundY-100));this.nextHeart+=DZ.config.powerups.heartGap;}
-    this.timer=gap/game.speed;
+    this.timer=gap*(pattern.length+1)/game.speed;
   };
   Spawner.prototype.debugState=function(){return"pattern "+this.last+" gap "+Math.round(this.lastGap);};
   DZ.Spawner=Spawner;
