@@ -7,6 +7,20 @@
   function near(a,b,t){ok(Math.abs(a-b)<=t,a+" not within "+t+" of "+b);}
   test("AABB overlap and edge separation",function(){ok(DZ.util.aabb({x:0,y:0,w:10,h:10},{x:9,y:9,w:2,h:2}));ok(!DZ.util.aabb({x:0,y:0,w:10,h:10},{x:10,y:0,w:2,h:2}));});
   test("seeded RNG is deterministic",function(){var a=new DZ.util.RNG(7),b=new DZ.util.RNG(7);for(var i=0;i<100;i++)ok(a.next()===b.next());});
+  test("dog names are sanitized and limited to 12 characters",function(){
+    ok(DZ.profile.sanitizeName("  Zoomie!! Pup  ")==="Zoomie Pup");
+    ok(DZ.profile.sanitizeName("abcdefghijklmnop")==="abcdefghijkl");
+    ok(DZ.profile.sanitizeName("   ")==="Doodle");
+  });
+  test("coat palette has eight unique presets",function(){
+    var seen={};ok(DZ.art.coatPresets.length===8);for(var i=0;i<DZ.art.coatPresets.length;i++){var id=DZ.art.coatPresets[i].id;ok(!seen[id]);seen[id]=1;}
+  });
+  test("coat sprites rebuild only when the preset changes",function(){
+    DZ.art.setCoat("apricot");var before=DZ.art.coatCacheBuilds,canvas=document.createElement("canvas"),ctx=canvas.getContext("2d");
+    for(var i=0;i<100;i++)DZ.art.drawDoodle(ctx,{x:60,y:94,state:"run",onGround:true,facingBlink:false},i/60,false);
+    ok(DZ.art.coatCacheBuilds===before);DZ.art.setCoat("blue");ok(DZ.art.coatCacheBuilds===before+1);
+    DZ.art.setCoat("apricot");
+  });
   test("speed formula has 70% minimum and 135% maximum",function(){near(DZ.difficulty.worldSpeed(0,DZ.config.player.minX,false),224,.01);near(DZ.difficulty.worldSpeed(0,DZ.config.player.maxX,false),432,.01);});
   test("difficulty table and cap",function(){ok(DZ.difficulty.baseSpeed(0)===320);ok(DZ.difficulty.baseSpeed(250)===380);ok(DZ.difficulty.baseSpeed(800)===450);ok(DZ.difficulty.baseSpeed(99999)===640);});
   test("full jump apex is about 155 px",function(){
@@ -24,6 +38,11 @@
     var proto=Object.getPrototypeOf(localStorage),oldGet=proto.getItem,oldSet=proto.setItem;
     proto.getItem=function(){throw new Error("blocked");};proto.setItem=function(){throw new Error("blocked");};
     DZ.storage.set("test.throw",{safe:true});ok(DZ.storage.get("test.throw",null).safe);proto.getItem=oldGet;proto.setItem=oldSet;
+  });
+  test("profile persists through the safe storage wrapper",function(){
+    var key=DZ.profile.key;DZ.profile.key="dz.v1.profile.test";
+    DZ.profile.save({name:"Pepper<script>",color:"pink",customized:false});var p=DZ.profile.load();
+    ok(p.name==="Pepperscript");ok(p.color==="pink");ok(p.customized===true);DZ.profile.key=key;
   });
   test("20,000 tick entity simulation remains finite and bounded",function(){
     var game={distance:0,speed:320,obstacles:[],collectibles:[],player:{hearts:2}},s=new DZ.Spawner(55);

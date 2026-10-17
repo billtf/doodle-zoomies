@@ -1,6 +1,6 @@
 # Doodle Zoomies
 
-A tiny golden doodle has the zoomies. Run down the block, dodge neighborhood obstacles, and collect treats in this keyboard-only Canvas game.
+A customizable doodle has the zoomies. Run down the block, dodge neighborhood obstacles, and collect treats in this keyboard-only Canvas game.
 
 ## Play
 
@@ -13,11 +13,14 @@ Open `index.html` in Chrome and press Space.
 | Left / Right | Move and change the world speed |
 | P or Esc | Pause / resume |
 | M | Mute / unmute |
+| C | Customize the dog (title screen) |
 | H | How to play (title screen) |
 | R | Restart (pause or game over) |
 | Backtick | Debug overlay |
 
-The game saves the best score, best distance, and mute setting when browser storage is available. It still plays when storage is blocked or cleared.
+The first time you start, type a dog name of up to 12 characters and use the arrow keys to choose from eight coat colors. Press Enter to save and play. Press C on the title screen to customize again. While naming the dog, typing is isolated from gameplay controls.
+
+The game saves the name, coat, best score, best distance, and mute setting when browser storage is available. All storage access uses a safe fallback, so it still plays when storage is blocked or cleared.
 
 ## Host on GitHub Pages
 
@@ -35,7 +38,7 @@ If GitHub Pages is blocked, click **Code → Download ZIP** on GitHub. Unzip the
 
 ## Tests
 
-Open `tests/tests.html` in Chrome. The dependency-free browser suite checks collisions, jump physics, speed, storage fallback, all obstacle definitions, 40,000 fairness selections, and a 20,000-tick simulation. Add `?bot=1` to the game URL for the automated play mode.
+Open `tests/tests.html` in Chrome. The dependency-free browser suite checks collisions, jump physics, speed, profile sanitization and persistence, cached coat rendering, storage fallback, all obstacle definitions, 40,000 fairness selections, and a 20,000-tick simulation. Add `?bot=1` to the game URL for the automated play mode.
 
 ## Tweak the game
 

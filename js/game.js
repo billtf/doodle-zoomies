@@ -4,12 +4,41 @@
   function Game(){
     this.state="title";this.time=0;this.player=new DZ.Player();this.spawner=new DZ.Spawner(20261017);
     this.background=new DZ.Background();this.particles=new DZ.Particles();this.obstacles=[];this.collectibles=[];
+    this.profile=DZ.profile.load();this.profile.color=DZ.art.setCoat(this.profile.color);
+    this.customizeDraft=null;this.customizeOriginal=null;this.customizeStart=false;this.customizeFresh=false;
     this.best=DZ.storage.get("dz.v1.best",{score:0,distance:0});this.score=0;this.distance=0;this.bones=0;
     this.speed=320;this.popup=0;this.gameOverTime=0;this.newBest=false;this.debug=false;this.shake=0;
   }
   Game.prototype.start=function(){
     this.player.reset();this.obstacles.length=0;this.collectibles.length=0;this.spawner=new DZ.Spawner(20261017);
     this.score=0;this.distance=0;this.bones=0;this.popup=0;this.newBest=false;this.state="playing";DZ.audio.sfx("bark");
+  };
+  Game.prototype.openCustomize=function(startAfter){
+    this.customizeOriginal={name:this.profile.name,color:this.profile.color,customized:this.profile.customized};
+    this.customizeDraft={name:this.profile.name,color:this.profile.color};
+    this.customizeStart=!!startAfter;this.customizeFresh=true;this.state="customize";
+    DZ.input.setTextMode(true);DZ.art.setCoat(this.customizeDraft.color);
+  };
+  Game.prototype.updateCustomize=function(){
+    var input=DZ.input,draft=this.customizeDraft,presets=DZ.art.coatPresets;
+    if(input.backspace){draft.name=draft.name.slice(0,-1);this.customizeFresh=false;}
+    if(input.text){
+      var typed=input.text.replace(/[^a-zA-Z0-9 '\-]/g,"");
+      draft.name=(this.customizeFresh?typed:draft.name+typed).slice(0,12);this.customizeFresh=false;
+    }
+    var direction=(input.hit("ArrowRight")||input.hit("ArrowDown"))?1:
+      ((input.hit("ArrowLeft")||input.hit("ArrowUp"))?-1:0);
+    if(direction){
+      var index=(DZ.art.coatIndex(draft.color)+direction+presets.length)%presets.length;
+      draft.color=presets[index].id;DZ.art.setCoat(draft.color);
+    }
+    if(input.hit("Enter")){
+      this.profile={name:DZ.profile.sanitizeName(draft.name),color:draft.color,customized:true};
+      DZ.profile.save(this.profile);DZ.input.setTextMode(false);
+      if(this.customizeStart)this.start();else this.state="title";
+    }else if(input.hit("Escape")){
+      this.profile=this.customizeOriginal;DZ.art.setCoat(this.profile.color);DZ.input.setTextMode(false);this.state="title";
+    }
   };
   Game.prototype.pause=function(){if(this.state==="playing")this.state="paused";};
   Game.prototype.botInput=function(){
@@ -33,9 +62,13 @@
     if(DZ.input.hit("Backquote"))this.debug=!this.debug;
     if(this.state==="title"){
       if(DZ.input.hit("KeyH"))this.state="how";
-      else if(DZ.input.hit("Space")||DZ.input.hit("Enter"))this.start();
+      else if(DZ.input.hit("KeyC"))this.openCustomize(false);
+      else if(DZ.input.hit("Space")||DZ.input.hit("Enter")){
+        if(this.profile.customized)this.start();else this.openCustomize(true);
+      }
       return;
     }
+    if(this.state==="customize"){this.updateCustomize();return;}
     if(this.state==="how"){if(Object.keys(DZ.input.pressed).length)this.state="title";return;}
     if(this.state==="paused"){
       if(DZ.input.hit("KeyP")||DZ.input.hit("Escape"))this.state="playing";
@@ -92,8 +125,9 @@
     for(var i=0;i<this.obstacles.length;i++){var o=this.obstacles[i];if(o.age>=0)DZ.art.drawObstacle(ctx,o,this.time);}
     for(var j=0;j<this.collectibles.length;j++)DZ.art.drawCollectible(ctx,this.collectibles[j],this.time);
     this.particles.draw(ctx);DZ.art.drawDoodle(ctx,this.player,this.time,false);
-    if(this.state!=="title"&&this.state!=="how")DZ.hud.draw(ctx,this);
+    if(this.state!=="title"&&this.state!=="how"&&this.state!=="customize")DZ.hud.draw(ctx,this);
     if(this.state==="title")DZ.screens.title(ctx,this,this.time);else if(this.state==="how")DZ.screens.how(ctx);
+    else if(this.state==="customize")DZ.screens.customize(ctx,this,this.time);
     else if(this.state==="paused")DZ.screens.pause(ctx);else if(this.state==="gameover")DZ.screens.gameover(ctx,this);
     if(this.debug)this.drawDebug(ctx,fps);ctx.restore();
   };

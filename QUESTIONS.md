@@ -2,7 +2,9 @@
 
 The build does not block on these choices. Current v1 decisions are:
 
-- **Doodle name:** No personal name was supplied, so UI copy uses “Doodle” and “Good boy!”.
+- **Doodle name and coat:** The player chooses both before the first run and can reopen customization with C. “Doodle” and apricot are safe defaults.
+- **Customization input:** Arrow keys cycle eight fixed coat presets; typing is captured in a dedicated text-input mode. Enter saves, while Escape restores the prior profile.
+- **Coat rendering:** Six animation states with six frames each are regenerated into offscreen canvases only when the selected preset changes.
 - **Game title:** “Doodle Zoomies” is treated as final.
 - **Touch controls:** Excluded from v1 because the hard requirements say keyboard only.
 - **Hosting account:** The Pages URL uses the account that owns this repository.
@@ -12,7 +14,6 @@ The build does not block on these choices. Current v1 decisions are:
 
 Questions for the owner:
 
-1. Should the doodle have a real name for the title and streak message?
-2. Is “Doodle Zoomies” the final public title?
-3. Which GitHub account should be named explicitly in the Pages URL?
-4. Should a visible Reduce Motion toggle be added later, in addition to respecting the operating-system preference?
+1. Is “Doodle Zoomies” the final public title?
+2. Which GitHub account should be named explicitly in the Pages URL?
+3. Should a visible Reduce Motion toggle be added later, in addition to respecting the operating-system preference?
