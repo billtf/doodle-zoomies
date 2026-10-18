@@ -39,7 +39,23 @@
   test("34 patterns span four tiers and include double-jump clusters",function(){var s=new DZ.Spawner(1),clusters=0,seen={};ok(s.patterns.length>=34);for(var i=0;i<s.patterns.length;i++){if(s.patterns[i].cluster)clusters++;for(var j=0;j<s.patterns[i].length;j++)seen[s.patterns[i][j]]=1;}ok(clusters>=4);ok(seen.mailbox&&seen.kiddiepool&&seen.flowerpots&&seen.gardenhose);for(var t=0;t<4;t++)ok(s.choose(t).length>0);});
   test("10,000 spawns per tier preserve reaction plus full-arc gap",function(){
     for(var tier=0;tier<4;tier++){var s=new DZ.Spawner(9+tier),m=[0,250,800,1600][tier],speed=DZ.difficulty.baseSpeed(m)*1.35,last=-1;
-      for(var i=0;i<10000;i++){var p=s.choose(tier);ok(s.last!==last,"repeated pattern");last=s.last;ok(s.isFairPattern(p,speed));ok(p.length>0);}}
+      for(var i=0;i<10000;i++){var p=s.choose(tier);ok(s.last!==last,"repeated pattern");last=s.last;ok(s.isFairPattern(p,speed,m),"unfair pattern "+p.join("+"));ok(p.length>0);}}
+  });
+  test("fairness check rejects obstacles packed too tightly",function(){
+    var s=new DZ.Spawner(5),orig=s.layout;s.layout=function(p,v,d){var l=orig.call(this,p,v,d);l.spacing=l.gap*.5;return l;};
+    ok(!s.isFairPattern(["hydrant","frisbee"],380,250),"tight pair must fail");ok(s.isFairPattern(["trash"],380,250),"single obstacle stays fair");
+  });
+  test("jump pressed just before landing is buffered, not spent as a double jump",function(){
+    var p=new DZ.Player(),press=false,input={down:function(){return false;},hit:function(){return press;},up:function(){return false;}};
+    p.onGround=false;p.y=DZ.config.groundY-6;p.vy=400;press=true;p.update(1/60,input,false);press=false;
+    ok(p.airJumps===DZ.config.player.airJumps,"double jump must not fire this close to the ground");
+    for(var i=0;i<6&&!(p.vy<0);i++)p.update(1/60,input,false);
+    ok(p.vy<0&&p.spinTime===0,"buffered press becomes a normal ground jump");
+  });
+  test("title screen doodle animates",function(){
+    var imgs=[],ctx={save:function(){},restore:function(){},translate:function(){},rotate:function(){},drawImage:function(img){if(imgs.indexOf(img)<0)imgs.push(img);}};
+    for(var i=0;i<60;i++)DZ.art.drawDoodle(ctx,{x:410,y:355,state:"run",onGround:true,facingBlink:false},i/30,true);
+    ok(imgs.length>1,"title doodle should cycle through frames");
   });
   test("cluster span exceeds one jump and fits within a double jump",function(){
     var s=new DZ.Spawner(4),speeds=[320*.7,380,450*1.35,640*1.35];

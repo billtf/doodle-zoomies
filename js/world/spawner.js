@@ -18,10 +18,23 @@
   Spawner.prototype.clusterSpan=function(speed){
     return Math.min(this.arcLength(speed,2)-speed*.08,this.arcLength(speed,1)+speed*.14);
   };
-  Spawner.prototype.isFairPattern=function(pattern,speed){
-    if(!pattern.cluster)return this.minimumGap(speed,1)>=speed*(DZ.config.reactionTime+this.jumpDuration(1));
-    var span=this.clusterSpan(speed);
-    return span>this.arcLength(speed,1)&&span<this.arcLength(speed,2);
+  // One layout function feeds both the live spawner and the fairness check, so the test checks real positions.
+  Spawner.prototype.layout=function(pattern,speed,distance){
+    var gap=Math.max(this.minimumGap(speed,pattern.cluster?2:1),speed*DZ.difficulty.density(distance||0));
+    var span=pattern.cluster?this.clusterSpan(speed):(pattern.length-1)*gap;
+    var lastDef=DZ.obstacleTypes[pattern[pattern.length-1]],spacing=pattern.length>1?(pattern.cluster?(span-(lastDef?lastDef.w:0))/(pattern.length-1):gap):0;
+    return {gap:gap,span:span,spacing:spacing};
+  };
+  Spawner.prototype.isFairPattern=function(pattern,speed,distance){
+    var l=this.layout(pattern,speed,distance);
+    if(pattern.cluster)return l.span>this.arcLength(speed,1)&&l.span<this.arcLength(speed,2);
+    var need=this.minimumGap(speed,1),prev=-1;
+    for(var i=0;i<pattern.length;i++){
+      if(!DZ.obstacleTypes[pattern[i]])continue;
+      if(prev>=0&&(i-prev)*l.spacing<need)return false;
+      prev=i;
+    }
+    return true;
   };
   Spawner.prototype.choose=function(tier){
     var start=starts[tier],end=ends[tier],n=start+((this.rng.next()*(end-start))|0);
@@ -32,9 +45,7 @@
     var pattern=this.choose(DZ.difficulty.tier(game.distance)),needed=0;
     for(var n=0;n<pattern.length;n++)if(DZ.obstacleTypes[pattern[n]])needed++;
     if(game.obstacles.length+needed>DZ.config.limits.obstacles){this.timer=.2;return;}
-    var gap=Math.max(this.minimumGap(game.speed,pattern.cluster?2:1),game.speed*DZ.difficulty.density(game.distance));
-    var span=pattern.cluster?this.clusterSpan(game.speed):(pattern.length-1)*gap;
-    var lastDef=DZ.obstacleTypes[pattern[pattern.length-1]],spacing=pattern.cluster?(span-(lastDef?lastDef.w:0))/(pattern.length-1):gap;
+    var l=this.layout(pattern,game.speed,game.distance),gap=l.gap,span=l.span,spacing=l.spacing;
     var clusterId=pattern.cluster?++this.clusterSerial:0;
     this.lastGap=gap;this.lastWasCluster=!!pattern.cluster;var x=DZ.config.width+50;
     for(var i=0;i<pattern.length;i++){

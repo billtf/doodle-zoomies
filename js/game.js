@@ -129,7 +129,7 @@
     else DZ.audio.sfx("gameover");
   };
   Game.prototype.render=function(ctx,fps){
-    var visualTime=this.state==="playing"?this.time:((this.state==="paused"||this.state==="gameover")?this.frozenTime:0);
+    var visualTime=(this.state==="paused"||this.state==="gameover")?this.frozenTime:this.time;
     U.screenOffset(this.state,this.shake,C.reduceMotion,Math.random,this.cameraOffset);
     ctx.save();if(this.cameraOffset.x||this.cameraOffset.y)ctx.translate(this.cameraOffset.x,this.cameraOffset.y);
     this.background.draw(ctx,this.distance,visualTime);
@@ -138,8 +138,8 @@
     this.particles.draw(ctx);
     if(this.state!=="title"&&this.state!=="how"&&this.state!=="customize")DZ.art.drawDoodle(ctx,this.player,visualTime,false,this.state!=="playing");
     if(this.state!=="title"&&this.state!=="how"&&this.state!=="customize")DZ.hud.draw(ctx,this);
-    if(this.state==="title")DZ.screens.title(ctx,this,0);else if(this.state==="how")DZ.screens.how(ctx);
-    else if(this.state==="customize")DZ.screens.customize(ctx,this,0);
+    if(this.state==="title")DZ.screens.title(ctx,this,this.time);else if(this.state==="how")DZ.screens.how(ctx);
+    else if(this.state==="customize")DZ.screens.customize(ctx,this,this.time);
     else if(this.state==="paused")DZ.screens.pause(ctx);else if(this.state==="gameover")DZ.screens.gameover(ctx,this);
     if(this.debug)this.drawDebug(ctx,fps);ctx.restore();
   };

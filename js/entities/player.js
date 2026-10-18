@@ -25,7 +25,8 @@
     if(this.onGround)this.coyote=C.player.coyote;else this.coyote-=dt;
     if(this.buffer>0){
       if(this.coyote>0)this.jump(false);
-      else if(!this.onGround&&this.airJumps>0)this.jump(true);
+      // A press just before landing stays buffered for a normal ground jump instead of spending the double jump.
+      else if(!this.onGround&&this.airJumps>0&&this.timeToLand(down)>this.buffer)this.jump(true);
     }
     if(!this.onGround){
       if((input.up("Space")||input.up("ArrowUp"))&&this.vy<0)this.vy*=C.player.jumpCut;
@@ -37,6 +38,11 @@
     if(this.invulnerable>0){this.invulnerable-=dt;this.facingBlink=((this.invulnerable*10)|0)%2===0;}else this.facingBlink=false;
     if(this.spinTime>0){this.spinTime-=dt;this.spinAngle+=Math.PI*2/C.player.doubleJumpSpin*dt;if(this.spinTime<=0){this.spinTime=0;this.spinAngle=0;}}
     if(this.zoomies>0)this.zoomies-=dt;
+  };
+  Player.prototype.timeToLand = function (down) {
+    if(this.onGround)return 0;
+    var g=C.player.gravity*(down?C.player.fastFall:1),h=C.groundY-this.y,v=this.vy;
+    return (-v+Math.sqrt(Math.max(0,v*v+2*g*h)))/g;
   };
   Player.prototype.hitbox = function () {
     var size=C.player.hitboxes[this.state==="duck"?"duck":(this.onGround?"run":"jump")];

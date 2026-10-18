@@ -57,7 +57,7 @@
     var state = title ? "idle" : player.state;
     if (state === "knockedOut") state = "hurt";
     if (!cache[state + "0"]) state = "run";
-    var phase = (title || still) ? 0 : (time * 10) % 6 | 0;
+    var phase = still ? 0 : (time * (title ? 5 : 10)) % 6 | 0;
     var px = (title || still) ? Math.round(player.x) : player.x;
     var py = (title || still) ? Math.round(player.y) : player.y;
     ctx.save();
