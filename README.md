@@ -8,7 +8,7 @@ Open `index.html` in Chrome and press Space.
 
 | Key | Action |
 | --- | --- |
-| Space or Up | Jump (hold for a higher jump) |
+| Space or Up | Jump; press again in the air to double jump |
 | Down | Duck / slide; fast-fall in the air |
 | Left / Right | Move and change the world speed |
 | P or Esc | Pause / resume |
@@ -19,6 +19,8 @@ Open `index.html` in Chrome and press Space.
 | Backtick | Debug overlay |
 
 The first time you start, type a dog name of up to 12 characters and use the arrow keys to choose from eight coat colors. Press Enter to save and play. Press C on the title screen to customize again. While naming the dog, typing is isolated from gameplay controls.
+
+The second jump resets once the doodle lands. Its spin, puff, and higher bark distinguish it from a normal jump. Later pattern tiers include compact neighborhood clusters—mailboxes, flower pots, kiddie pools, garden hoses, and familiar obstacles—that require both jumps.
 
 The game saves the name, coat, per-player best score and distance, and mute setting when browser storage is available. Names are matched case-insensitively, so `Milo` and `milo` share one record. The title screen shows the current player's best and a local top-five leaderboard for this browser. The HUD's **BEST** value updates live when a run passes the saved score, and game over marks a new personal record.
 
@@ -40,7 +42,7 @@ If GitHub Pages is blocked, click **Code → Download ZIP** on GitHub. Unzip the
 
 ## Tests
 
-Open `tests/tests.html` in Chrome. The dependency-free browser suite checks collisions, jump physics, speed, profile sanitization and persistence, per-player best migration and ranking, cached coat rendering, storage fallback, all obstacle definitions, 40,000 fairness selections, and a 20,000-tick simulation. Add `?bot=1` to the game URL for the automated play mode.
+Open `tests/tests.html` in Chrome. The dependency-free browser suite checks collisions, single/double-jump state, cluster clearability, camera stability, speed, profile sanitization and persistence, per-player best migration and ranking, cached coat rendering, storage fallback, all obstacle definitions, 40,000 fairness selections, and a 20,000-tick simulation. Add `?bot=1` to the game URL for the automated play mode.
 
 ## Tweak the game
 

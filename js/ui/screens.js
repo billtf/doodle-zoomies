@@ -34,8 +34,9 @@
     },
     how:function(ctx){
       ctx.fillStyle="rgba(48,55,63,.88)";ctx.fillRect(0,0,960,540);T(ctx,"HOW TO PLAY",480,92,43);
-      T(ctx,"←  →   Move and change speed",480,180,25);T(ctx,"SPACE / ↑   Jump — hold to go higher",480,240,25);
-      T(ctx,"↓   Duck — or fast fall in the air",480,300,25);T(ctx,"P / ESC   Pause        M   Mute",480,360,25);
+      T(ctx,"←  →   Move and change speed",480,170,24);T(ctx,"SPACE / ↑   Jump — hold to go higher",480,225,24);
+      T(ctx,"Press jump again in the air to DOUBLE JUMP!",480,280,22);
+      T(ctx,"↓   Duck — or fast fall in the air",480,335,24);T(ctx,"P / ESC   Pause        M   Mute",480,385,22);
       T(ctx,"Grab treats. Dodge the neighborhood!",480,426,21);T(ctx,"Press any key to go back",480,490,17);
     },
     pause:function(ctx){ctx.fillStyle="rgba(35,36,48,.62)";ctx.fillRect(0,0,960,540);T(ctx,"PAUSED",480,230,55);T(ctx,"P / Esc resume   •   R restart   •   M mute",480,300,20);},

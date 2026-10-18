@@ -8,6 +8,7 @@
       startX: 260, minX: 173, maxX: 528, drawW: 82, drawH: 66,
       accel: 900, maxMoveSpeed: 320, gravity: 2600, jumpVelocity: 900,
       jumpCut: 0.45, fastFall: 2.2, coyote: 0.09, jumpBuffer: 0.12,
+      airJumps: 1, doubleJumpSpin: 0.45,
       hearts: 3, invulnerable: 1.2,
       hitboxes: { run: [56, 44], jump: [50, 46], duck: [64, 22] }
     },

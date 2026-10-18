@@ -21,6 +21,7 @@
   A.sfx = function (name) {
     var map = {
       jump: [330, .12, "sine", .18, 560], land: [90, .08, "triangle", .12, 50],
+      doubleJump: [230, .18, "sawtooth", .16, 520],
       duck: [240, .09, "sawtooth", .08, 80], bone: [660, .1, "square", .12, 880],
       tennis: [520, .17, "square", .12, 1040], power: [330, .35, "sine", .15, 1200],
       hit: [540, .28, "square", .18, 100], bark: [180, .18, "sawtooth", .16, 110],

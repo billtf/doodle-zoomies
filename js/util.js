@@ -38,4 +38,12 @@
     ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r);
     ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
   };
+  U.screenOffset = function (state, shake, reduceMotion, random, out) {
+    out.x = 0; out.y = 0;
+    if (state === "playing" && shake > 0 && !reduceMotion) {
+      out.x = Math.round((random() - .5) * 12);
+      out.y = Math.round((random() - .5) * 12);
+    }
+    return out;
+  };
 }());

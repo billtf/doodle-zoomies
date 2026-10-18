@@ -1,7 +1,7 @@
 (function(){
   "use strict";
   var out=document.getElementById("results"),lines=[],passed=0,failed=0;
-  window.DZ.audio={sfx:function(){}};
+  window.DZ.audio={sfx:function(){},updateMusic:function(){}};
   function test(name,fn){try{fn();passed++;lines.push("PASS  "+name);}catch(e){failed++;lines.push("FAIL  "+name+": "+e.message);}}
   function ok(value,message){if(!value)throw new Error(message||"assertion failed");}
   function near(a,b,t){ok(Math.abs(a-b)<=t,a+" not within "+t+" of "+b);}
@@ -27,12 +27,55 @@
     var p=new DZ.Player(),input={down:function(){return false;},hit:function(k){return k==="Space";},up:function(){return false;}},min=p.y;
     p.update(1/60,input,false);input.hit=function(){return false;};for(var i=0;i<90;i++){p.update(1/60,input,false);min=Math.min(min,p.y);}near(DZ.config.groundY-min,155,8);
   });
+  test("double jump is allowed once and resets on landing",function(){
+    var p=new DZ.Player(),pressed=true,input={down:function(){return false;},hit:function(){return pressed;},up:function(){return false;}};
+    p.update(1/60,input,false);ok(!p.onGround&&p.airJumps===1);
+    p.update(1/60,input,false);ok(p.airJumps===0&&p.doubleJumpPulse&&p.spinTime>0);
+    var vy=p.vy;p.update(1/60,input,false);ok(p.airJumps===0&&p.vy>vy,"third jump must not reset velocity");
+    pressed=false;p.y=DZ.config.groundY-1;p.vy=100;p.update(1/60,input,false);ok(p.onGround&&p.airJumps===1);
+  });
   test("duck hitbox clears 30 px opening",function(){var p=new DZ.Player();p.state="duck";var b=p.hitbox();ok(b.h===22&&b.y>DZ.config.groundY-30);});
-  test("all 12 obstacles are present and unlock by 1600 m",function(){var keys=Object.keys(DZ.obstacleTypes);ok(keys.length===12);for(var i=0;i<keys.length;i++)ok(DZ.obstacleTypes[keys[i]].unlock<=1600);});
-  test("24 patterns span four tiers",function(){var s=new DZ.Spawner(1);ok(s.patterns.length>=20);for(var t=0;t<4;t++)ok(s.choose(t).length>0);});
+  test("all 16 obstacles include four new ground types",function(){var keys=Object.keys(DZ.obstacleTypes),fresh=["mailbox","kiddiepool","flowerpots","gardenhose"];ok(keys.length===16);for(var i=0;i<fresh.length;i++)ok(DZ.obstacleTypes[fresh[i]].answer==="jump");});
+  test("34 patterns span four tiers and include double-jump clusters",function(){var s=new DZ.Spawner(1),clusters=0,seen={};ok(s.patterns.length>=34);for(var i=0;i<s.patterns.length;i++){if(s.patterns[i].cluster)clusters++;for(var j=0;j<s.patterns[i].length;j++)seen[s.patterns[i][j]]=1;}ok(clusters>=4);ok(seen.mailbox&&seen.kiddiepool&&seen.flowerpots&&seen.gardenhose);for(var t=0;t<4;t++)ok(s.choose(t).length>0);});
   test("10,000 spawns per tier preserve reaction plus full-arc gap",function(){
     for(var tier=0;tier<4;tier++){var s=new DZ.Spawner(9+tier),m=[0,250,800,1600][tier],speed=DZ.difficulty.baseSpeed(m)*1.35,last=-1;
-      for(var i=0;i<10000;i++){var p=s.choose(tier);ok(s.last!==last,"repeated pattern");last=s.last;var gap=s.minimumGap(speed);ok(gap>=speed*(.35+2*900/2600)-.001);ok(p.length>0);}}
+      for(var i=0;i<10000;i++){var p=s.choose(tier);ok(s.last!==last,"repeated pattern");last=s.last;ok(s.isFairPattern(p,speed,m),"unfair pattern "+p.join("+"));ok(p.length>0);}}
+  });
+  test("fairness check rejects obstacles packed too tightly",function(){
+    var s=new DZ.Spawner(5),orig=s.layout;s.layout=function(p,v,d){var l=orig.call(this,p,v,d);l.spacing=l.gap*.5;return l;};
+    ok(!s.isFairPattern(["hydrant","frisbee"],380,250),"tight pair must fail");ok(s.isFairPattern(["trash"],380,250),"single obstacle stays fair");
+  });
+  test("jump pressed just before landing is buffered, not spent as a double jump",function(){
+    var p=new DZ.Player(),press=false,input={down:function(){return false;},hit:function(){return press;},up:function(){return false;}};
+    p.onGround=false;p.y=DZ.config.groundY-6;p.vy=400;press=true;p.update(1/60,input,false);press=false;
+    ok(p.airJumps===DZ.config.player.airJumps,"double jump must not fire this close to the ground");
+    for(var i=0;i<6&&!(p.vy<0);i++)p.update(1/60,input,false);
+    ok(p.vy<0&&p.spinTime===0,"buffered press becomes a normal ground jump");
+  });
+  test("title screen doodle animates",function(){
+    var imgs=[],ctx={save:function(){},restore:function(){},translate:function(){},rotate:function(){},drawImage:function(img){if(imgs.indexOf(img)<0)imgs.push(img);}};
+    for(var i=0;i<60;i++)DZ.art.drawDoodle(ctx,{x:410,y:355,state:"run",onGround:true,facingBlink:false},i/30,true);
+    ok(imgs.length>1,"title doodle should cycle through frames");
+  });
+  test("cluster span exceeds one jump and fits within a double jump",function(){
+    var s=new DZ.Spawner(4),speeds=[320*.7,380,450*1.35,640*1.35];
+    for(var i=0;i<speeds.length;i++){var span=s.clusterSpan(speeds[i]);ok(span>s.arcLength(speeds[i],1));ok(span<s.arcLength(speeds[i],2));}
+  });
+  test("non-playing screens always have zero camera offset",function(){
+    var states=["title","customize","paused","gameover","how"],out={x:99,y:99};
+    for(var i=0;i<states.length;i++){DZ.util.screenOffset(states[i],1,false,function(){return 1;},out);ok(out.x===0&&out.y===0,states[i]+" moved");}
+    var g=new DZ.Game();g.state="playing";g.shake=.15;g.pause();ok(g.state==="paused"&&g.shake===0);
+    g.state="playing";g.shake=.15;g.finish();ok(g.state==="gameover"&&g.shake===0);
+  });
+  test("bot clears a required double-jump cluster",function(){
+    var oldInput=DZ.input,oldBot=DZ.bot,held={},pressed={};
+    DZ.input={held:held,pressed:pressed,down:function(k){return!!held[k];},hit:function(k){return!!pressed[k];},up:function(){return false;},endFrame:function(){for(var k in pressed)delete pressed[k];}};
+    DZ.bot=true;var g=new DZ.Game();g.start();g.distance=800;g.spawner={update:function(){},debugState:function(){return"test";}};
+    var speed=DZ.difficulty.worldSpeed(g.distance,g.player.x,false),s=new DZ.Spawner(2),span=s.clusterSpan(speed),types=["mailbox","flowerpots","kiddiepool"],spacing=(span-DZ.obstacleTypes.kiddiepool.w)/2;
+    for(var i=0;i<types.length;i++){var o=new DZ.Obstacle(types[i],g.player.x+170+i*spacing);o.clusterId=1;o.clusterIndex=i;o.clusterCount=3;o.requiresDouble=true;g.obstacles.push(o);}
+    var usedDouble=false;for(var tick=0;tick<360&&g.obstacles.length;tick++){g.update(DZ.config.step);if(g.player.spinTime>0)usedDouble=true;DZ.input.endFrame();}
+    ok(usedDouble,"bot never double jumped");ok(g.player.hearts===3,"bot hit a cluster obstacle");ok(g.obstacles.length===0,"cluster did not clear");
+    DZ.input=oldInput;DZ.bot=oldBot;
   });
   test("storage falls back when localStorage throws",function(){
     var proto=Object.getPrototypeOf(localStorage),oldGet=proto.getItem,oldSet=proto.setItem;
